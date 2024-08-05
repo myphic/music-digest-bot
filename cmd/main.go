@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"music-digest-bot/internal/config"
 	"music-digest-bot/internal/services/yandexmusic"
@@ -12,7 +11,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ya := yandexmusic.Fetch{}
-	fmt.Println(cfg.YandexMusicToken)
-	ya.Fetch(cfg.YandexMusicToken)
+	yaMusic := yandexmusic.Fetch{}
+
+	yaMusic.Fetch(cfg.YandexMusicToken)
 }
