@@ -13,8 +13,10 @@ type SourceModel struct {
 type DigestModel struct {
 	ID          int       `db:"id"`
 	SourceID    int       `db:"source_id"`
+	DigestID    int       `db:"digest_id"`
 	Title       string    `db:"title"`
 	Description string    `db:"description"`
 	PublishedAt time.Time `db:"published_at"`
 	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }

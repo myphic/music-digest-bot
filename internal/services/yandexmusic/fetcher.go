@@ -1,6 +1,7 @@
 package yandexmusic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 )
 
 type FetcherImpl interface {
-	Fetch() []int32
+	Fetch(ctx context.Context, token string) Fetch
 }
 
 type Fetch struct {
@@ -24,6 +25,7 @@ type Releases struct {
 
 type Albums struct {
 	Result struct {
+		ID          int    `json:"id"`
 		Title       string `json:"title"`
 		Type        string `json:"type"`
 		ReleaseDate string `json:"releaseDate"`
@@ -98,7 +100,7 @@ func fetchAlbums(wg *sync.WaitGroup, inCh <-chan int, outCh chan<- resultWithErr
 	}
 }
 
-func (n *Fetch) Fetch(token string) Fetch {
+func (n *Fetch) Fetch(ctx context.Context, token string) Fetch {
 	client := NewClient(&http.Client{})
 	body, err := client.Get("landing3/new-releases", token)
 	var releases Releases

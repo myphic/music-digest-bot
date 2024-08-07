@@ -16,7 +16,7 @@ func FromEnv(path string) (*Config, error) {
 	v.AddConfigPath(path)
 	v.SetConfigName("app")
 	v.SetConfigType("env")
-	v.SetDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres")
+	v.SetDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/music_digest_bot?sslmode=disable")
 	v.AutomaticEnv()
 	err := v.ReadInConfig()
 
