@@ -4,50 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"music-digest-bot/internal/services"
 	"net/http"
 	"strconv"
 	"sync"
 )
 
-type FetcherImpl interface {
-	Fetch(ctx context.Context, token string) Fetch
-}
-
-type Fetch struct {
-	newReleases []int
-}
-
-type Releases struct {
-	Result struct {
-		NewReleases []int `json:"newReleases"`
-	} `json:"result"`
-}
-
-type Albums struct {
-	Result struct {
-		ID          int    `json:"id"`
-		Title       string `json:"title"`
-		Type        string `json:"type"`
-		ReleaseDate string `json:"releaseDate"`
-		Genre       string `json:"genre"`
-		LikesCount  int    `json:"likesCount"`
-		Artists     []struct {
-			Name string `json:"name"`
-		}
-	} `json:"result"`
-}
 type resultWithError struct {
-	Albums Albums
+	Albums services.Albums
 	Err    error
 }
 
-func getAlbums(releasesIds []int, wgCount int, token string) ([]Albums, error) {
+func getAlbums(releasesIds []int, wgCount int, token string) ([]services.Albums, error) {
 	inputCh := make(chan int)
 
 	outputCh := make(chan resultWithError)
 	wg := &sync.WaitGroup{}
 
-	output := make([]Albums, 0, len(releasesIds))
+	output := make([]services.Albums, 0, len(releasesIds))
 
 	go func() {
 		defer close(inputCh)
@@ -82,7 +56,7 @@ func fetchAlbums(wg *sync.WaitGroup, inCh <-chan int, outCh chan<- resultWithErr
 	defer wg.Done()
 	client := NewClient(&http.Client{})
 	for id := range inCh {
-		var albums Albums
+		var albums services.Albums
 
 		get, err := client.Get("albums/"+strconv.Itoa(id), token)
 		if err != nil {
@@ -100,10 +74,13 @@ func fetchAlbums(wg *sync.WaitGroup, inCh <-chan int, outCh chan<- resultWithErr
 	}
 }
 
-func (n *Fetch) Fetch(ctx context.Context, token string) Fetch {
+type Yandex struct {
+}
+
+func (y Yandex) FetchFromService(ctx context.Context, token string) []services.Albums {
 	client := NewClient(&http.Client{})
 	body, err := client.Get("landing3/new-releases", token)
-	var releases Releases
+	var releases services.Releases
 	err = json.Unmarshal(body, &releases)
 	if err != nil {
 		fmt.Println("Can't unmarshal JSON:", err)
@@ -114,5 +91,5 @@ func (n *Fetch) Fetch(ctx context.Context, token string) Fetch {
 	if err != nil {
 		fmt.Errorf("an error ocurred: %s", err)
 	}
-	return Fetch{newReleases: releases.Result.NewReleases}
+	return albums
 }

@@ -7,7 +7,7 @@ import (
 	"log"
 	"music-digest-bot/internal/config"
 	"music-digest-bot/internal/db/repository"
-	"music-digest-bot/internal/services/yandexmusic"
+	"music-digest-bot/internal/services"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,7 +20,7 @@ func main() {
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	yaMusic := yandexmusic.Fetch{}
+	yaMusic := services.Fetch{}
 	fmt.Println(cfg, yaMusic)
 	conn, err := pgx.Connect(ctx, cfg.DatabaseUrl)
 	if err != nil {
@@ -34,5 +34,5 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Println(sources)
-	//yaMusic.Fetch(ctx, cfg.YandexMusicToken)
+	yaMusic.Fetch(ctx, cfg.YandexMusicToken)
 }
