@@ -7,8 +7,8 @@ import (
 )
 
 type SourcesRepository interface {
-	GetByName(ctx *context.Context, name string) (SourceModel, error)
-	Sources(ctx *context.Context) ([]SourceModel, error)
+	GetByName(ctx context.Context, name string) (SourceModel, error)
+	Sources(ctx context.Context) ([]SourceModel, error)
 }
 
 type SourcesRepositoryImpl struct {

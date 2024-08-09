@@ -74,10 +74,10 @@ func fetchAlbums(wg *sync.WaitGroup, inCh <-chan int, outCh chan<- resultWithErr
 	}
 }
 
-type Yandex struct {
+type YandexFetcher struct {
 }
 
-func (y Yandex) FetchFromService(ctx context.Context, token string) []services.Albums {
+func (y YandexFetcher) FetchFromService(ctx context.Context, token string) []services.Albums {
 	client := NewClient(&http.Client{})
 	body, err := client.Get("landing3/new-releases", token)
 	var releases services.Releases

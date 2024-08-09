@@ -6,14 +6,21 @@ import (
 	"sync"
 )
 
-type FetcherImpl interface {
+type Fetcher interface {
 	FetchFromService(ctx context.Context, token string) []Albums
 }
 
-type Fetch struct {
-	sources     repository.SourcesRepositoryImpl
-	fetchers    FetcherImpl
+type FetchImpl struct {
+	sources     repository.SourcesRepository
+	fetchers    Fetcher
 	newReleases []int
+}
+
+func New(sources repository.SourcesRepository, fetchers Fetcher) *FetchImpl {
+	return &FetchImpl{
+		sources:  sources,
+		fetchers: fetchers,
+	}
 }
 
 type Releases struct {
@@ -36,7 +43,7 @@ type Albums struct {
 	} `json:"result"`
 }
 
-func (f *Fetch) Fetch(ctx context.Context, token string) error {
+func (f *FetchImpl) Fetch(ctx context.Context, token string) error {
 	sources, err := f.sources.Sources(ctx)
 
 	if err != nil {
