@@ -7,7 +7,7 @@ import (
 )
 
 type Fetcher interface {
-	FetchFromService(ctx context.Context, token string) []Albums
+	FetchFromService(ctx context.Context) []Albums
 }
 
 type FetchImpl struct {
@@ -43,7 +43,7 @@ type Albums struct {
 	} `json:"result"`
 }
 
-func (f *FetchImpl) Fetch(ctx context.Context, token string) error {
+func (f *FetchImpl) Fetch(ctx context.Context) error {
 	sources, err := f.sources.Sources(ctx)
 
 	if err != nil {
@@ -52,12 +52,11 @@ func (f *FetchImpl) Fetch(ctx context.Context, token string) error {
 	var wg sync.WaitGroup
 	for _, source := range sources {
 		wg.Add(1)
-
-		go func(source repository.SourceModel) {
-			f.fetchers.FetchFromService(ctx, token)
+		var albums []Albums /* todo save albums to storage */
+		go func(source repository.SourceModel, albums []Albums) {
+			albums = f.fetchers.FetchFromService(ctx)
 			defer wg.Done()
-		}(source)
-
+		}(source, albums)
 	}
 	wg.Wait()
 

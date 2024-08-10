@@ -66,7 +66,7 @@ func fetchAlbums(wg *sync.WaitGroup, inCh <-chan int, outCh chan<- resultWithErr
 		if err != nil {
 			fmt.Println("Can't unmarshal JSON:", err)
 		}
-		fmt.Println("albums:", albums)
+
 		outCh <- resultWithError{
 			Albums: albums,
 			Err:    err,
@@ -75,19 +75,24 @@ func fetchAlbums(wg *sync.WaitGroup, inCh <-chan int, outCh chan<- resultWithErr
 }
 
 type YandexFetcher struct {
+	token string
 }
 
-func (y YandexFetcher) FetchFromService(ctx context.Context, token string) []services.Albums {
+func NewYandexFetcher(token string) *YandexFetcher {
+	return &YandexFetcher{token: token}
+}
+
+func (y YandexFetcher) FetchFromService(ctx context.Context) []services.Albums {
 	client := NewClient(&http.Client{})
-	body, err := client.Get("landing3/new-releases", token)
+	body, err := client.Get("landing3/new-releases", y.token)
 	var releases services.Releases
 	err = json.Unmarshal(body, &releases)
 	if err != nil {
 		fmt.Println("Can't unmarshal JSON:", err)
 	}
 	releasesIds := releases.Result.NewReleases
-	albums, err := getAlbums(releasesIds, 5, token)
-	fmt.Println(albums)
+	albums, err := getAlbums(releasesIds, 5, y.token)
+
 	if err != nil {
 		fmt.Errorf("an error ocurred: %s", err)
 	}

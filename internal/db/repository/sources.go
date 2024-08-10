@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"github.com/jackc/pgx/v5"
-	"log"
 )
 
 type SourcesRepository interface {
@@ -42,12 +41,12 @@ func (s *SourcesRepositoryImpl) Sources(ctx context.Context) ([]SourceModel, err
 		var r SourceModel
 		err := rows.Scan(&r.ID, &r.Name)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		Sources = append(Sources, r)
 	}
 	if err := rows.Err(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	return Sources, nil
 }
