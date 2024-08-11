@@ -30,9 +30,9 @@ func main() {
 	}
 
 	defer conn.Close(ctx)
-	repo := repository.NewSourcesRepository(conn)
-
-	fetcher := services.New(repo, yaMusic)
+	sourcesRepo := repository.NewSourcesRepository(conn)
+	digestRepo := repository.NewDigestRepository(conn)
+	fetcher := services.New(sourcesRepo, digestRepo, yaMusic)
 	err = fetcher.Fetch(ctx)
 	if err != nil {
 		logger.Error("error fetching sources: ", err)

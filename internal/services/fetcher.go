@@ -12,13 +12,15 @@ type Fetcher interface {
 
 type FetchImpl struct {
 	sources     repository.SourcesRepository
+	digest      repository.DigestRepository
 	fetchers    Fetcher
 	newReleases []int
 }
 
-func New(sources repository.SourcesRepository, fetchers Fetcher) *FetchImpl {
+func New(sources repository.SourcesRepository, digest repository.DigestRepository, fetchers Fetcher) *FetchImpl {
 	return &FetchImpl{
 		sources:  sources,
+		digest:   digest,
 		fetchers: fetchers,
 	}
 }
@@ -55,10 +57,15 @@ func (f *FetchImpl) Fetch(ctx context.Context) error {
 		var albums []Albums /* todo save albums to storage */
 		go func(source repository.SourceModel, albums []Albums) {
 			albums = f.fetchers.FetchFromService(ctx)
+			f.processItems(ctx, source, albums)
 			defer wg.Done()
 		}(source, albums)
 	}
 	wg.Wait()
 
+	return nil
+}
+
+func (f *FetchImpl) processItems(ctx context.Context, source repository.SourceModel, albums []Albums) error {
 	return nil
 }

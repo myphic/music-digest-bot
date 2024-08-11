@@ -6,7 +6,8 @@ import (
 )
 
 type DigestRepository interface {
-	GetByName(ctx *context.Context, name string) (DigestModel, error)
+	GetByID(ctx context.Context, ID int) (DigestModel, error)
+	CreateAndGetID(ctx context.Context, digest DigestModel) (int, error)
 }
 
 type DigestRepositoryImpl struct {
