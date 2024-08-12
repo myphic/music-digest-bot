@@ -16,6 +16,7 @@ type DigestModel struct {
 	DigestID    int       `db:"digest_id"`
 	Title       string    `db:"title"`
 	Description string    `db:"description"`
+	Genre       string    `db:"genre"`
 	PublishedAt time.Time `db:"published_at"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`

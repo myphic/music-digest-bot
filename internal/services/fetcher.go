@@ -4,6 +4,7 @@ import (
 	"context"
 	"music-digest-bot/internal/db/repository"
 	"sync"
+	"time"
 )
 
 type Fetcher interface {
@@ -52,12 +53,16 @@ func (f *FetchImpl) Fetch(ctx context.Context) error {
 		return err
 	}
 	var wg sync.WaitGroup
+
 	for _, source := range sources {
 		wg.Add(1)
 		var albums []Albums /* todo save albums to storage */
 		go func(source repository.SourceModel, albums []Albums) {
 			albums = f.fetchers.FetchFromService(ctx)
-			f.processItems(ctx, source, albums)
+			err = f.processItems(ctx, source, albums)
+			if err != nil {
+				return
+			}
 			defer wg.Done()
 		}(source, albums)
 	}
@@ -67,5 +72,19 @@ func (f *FetchImpl) Fetch(ctx context.Context) error {
 }
 
 func (f *FetchImpl) processItems(ctx context.Context, source repository.SourceModel, albums []Albums) error {
+	for i := range albums {
+		_, err := f.digest.CreateAndGetID(ctx, repository.DigestModel{
+			SourceID:    source.ID,
+			DigestID:    albums[i].Result.ID,
+			Title:       albums[i].Result.Title,
+			Description: "",
+			Genre:       albums[i].Result.Genre,
+			PublishedAt: time.Now(),
+		})
+
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
