@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v5"
 	"log/slog"
 	"music-digest-bot/internal/config"
@@ -19,6 +20,12 @@ func main() {
 	cfg, err := config.FromEnv(".")
 	if err != nil {
 		logger.Error("error getting config", err)
+		return
+	}
+	bot, err := tgbotapi.NewBotAPI(cfg.TelegramBotToken)
+	if err != nil {
+		logger.Error("error creating bot", err)
+		return
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -27,6 +34,7 @@ func main() {
 	conn, err := pgx.Connect(ctx, cfg.DatabaseUrl)
 	if err != nil {
 		logger.Error("database connection error: ", err)
+		return
 	}
 
 	defer conn.Close(ctx)
