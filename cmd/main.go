@@ -36,7 +36,7 @@ func main() {
 		logger.Error("database connection error: ", err)
 		return
 	}
-
+	t
 	defer conn.Close(ctx)
 	sourcesRepo := repository.NewSourcesRepository(conn)
 	digestRepo := repository.NewDigestRepository(conn)
