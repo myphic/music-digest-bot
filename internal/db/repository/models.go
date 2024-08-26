@@ -18,6 +18,7 @@ type DigestModel struct {
 	Description string    `db:"description"`
 	Genre       string    `db:"genre"`
 	PublishedAt time.Time `db:"published_at"`
+	Posted      bool      `db:"posted"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }

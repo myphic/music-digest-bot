@@ -8,6 +8,7 @@ import (
 	"music-digest-bot/internal/config"
 	"music-digest-bot/internal/db/repository"
 	"music-digest-bot/internal/services"
+	"music-digest-bot/internal/services/notifier"
 	"music-digest-bot/internal/services/yandexmusic"
 	"os"
 	"os/signal"
@@ -44,5 +45,10 @@ func main() {
 	err = fetcher.Fetch(ctx)
 	if err != nil {
 		logger.Error("error fetching sources: ", err)
+	}
+	notifier := notifier.New(digestRepo, 1000, cfg.TelegramChannelID, bot)
+	err = notifier.Start(ctx)
+	if err != nil {
+		logger.Error("error notifying telegram channel: ", err)
 	}
 }

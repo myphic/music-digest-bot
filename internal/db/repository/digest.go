@@ -8,6 +8,8 @@ import (
 type DigestRepository interface {
 	GetByID(ctx context.Context, ID int) (DigestModel, error)
 	CreateAndGetID(ctx context.Context, digest DigestModel) (int, error)
+	AllNotPosted(ctx context.Context) ([]DigestModel, error)
+	MarkAsPosted(ctx context.Context, article DigestModel) error
 }
 
 type DigestRepositoryImpl struct {
@@ -37,4 +39,38 @@ func (r *DigestRepositoryImpl) CreateAndGetID(ctx context.Context, digest Digest
 		return 0, err
 	}
 	return id, nil
+}
+
+func (r *DigestRepositoryImpl) AllNotPosted(ctx context.Context) ([]DigestModel, error) {
+	var digests []DigestModel
+
+	rows, err := r.conn.Query(ctx, "SELECT id, title, description, genre FROM digest WHERE posted IS FALSE")
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var r DigestModel
+		err := rows.Scan(&r.ID, &r.Title, &r.Description, &r.Genre)
+		if err != nil {
+			return nil, err
+		}
+		digests = append(digests, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return digests, nil
+}
+
+func (r *DigestRepositoryImpl) MarkAsPosted(ctx context.Context, digest DigestModel) error {
+	query := "UPDATE digest SET posted=TRUE, updated_at=now() WHERE id = $1"
+
+	_, err := r.conn.Exec(ctx, query, digest.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
