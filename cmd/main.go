@@ -30,7 +30,7 @@ func main() {
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	yaMusic := yandexmusic.NewYandexFetcher(cfg.YandexMusicToken)
+	yaMusic := yandexmusic.NewYandexFetcher(cfg.YandexMusicToken, logger)
 
 	conn, err := pgx.Connect(ctx, cfg.DatabaseUrl)
 	if err != nil {

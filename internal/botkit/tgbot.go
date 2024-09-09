@@ -6,8 +6,7 @@ import (
 )
 
 type TgBot struct {
-	api   *tgbotapi.BotAPI
-	views map[string]ViewFunc
+	api *tgbotapi.BotAPI
 }
 
 type ViewFunc func(ctx context.Context, bot *tgbotapi.BotAPI, update tgbotapi.Update) error

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"music-digest-bot/internal/services"
 	"net/http"
 	"strconv"
@@ -75,11 +76,12 @@ func fetchAlbums(wg *sync.WaitGroup, inCh <-chan int, outCh chan<- resultWithErr
 }
 
 type YandexFetcher struct {
-	token string
+	token  string
+	logger *slog.Logger
 }
 
-func NewYandexFetcher(token string) *YandexFetcher {
-	return &YandexFetcher{token: token}
+func NewYandexFetcher(token string, logger *slog.Logger) *YandexFetcher {
+	return &YandexFetcher{token: token, logger: logger}
 }
 
 func (y YandexFetcher) FetchFromService(ctx context.Context) []services.Albums {
@@ -94,7 +96,7 @@ func (y YandexFetcher) FetchFromService(ctx context.Context) []services.Albums {
 	albums, err := getAlbums(releasesIds, 5, y.token)
 
 	if err != nil {
-		fmt.Errorf("an error ocurred: %s", err)
+		y.logger.Error("an error ocurred: %s", err)
 	}
 	return albums
 }

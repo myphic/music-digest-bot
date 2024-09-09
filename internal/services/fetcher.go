@@ -56,15 +56,15 @@ func (f *FetchImpl) Fetch(ctx context.Context) error {
 
 	for _, source := range sources {
 		wg.Add(1)
-		var albums []Albums
-		go func(source repository.SourceModel, albums []Albums) {
-			albums = f.fetchers.FetchFromService(ctx)
+
+		go func(source repository.SourceModel) {
+			albums := f.fetchers.FetchFromService(ctx)
 			err = f.processItems(ctx, source, albums)
 			if err != nil {
 				return
 			}
 			defer wg.Done()
-		}(source, albums)
+		}(source)
 	}
 	wg.Wait()
 
