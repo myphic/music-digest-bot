@@ -5,6 +5,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"music-digest-bot/internal/db/repository"
+	"strings"
 	"time"
 )
 
@@ -50,32 +51,36 @@ func (n *Notifier) SelectAndSendArticle(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
+	m := make(map[string][]repository.DigestModel)
 	for i := range digests {
-		err = n.sendArticle(digests[i])
-		if err != nil {
-			return err
-		}
+		m[digests[i].Genre] = append(m[digests[i].Genre], digests[i])
 		err = n.digest.MarkAsPosted(ctx, digests[i])
 		if err != nil {
 			return err
 		}
 	}
-
+	err = n.sendArticle(m)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (n *Notifier) sendArticle(digest repository.DigestModel) error {
-	const msgFormat = "*%s\n\n%s\n\n%s\n\n%s"
+func (n *Notifier) sendArticle(m map[string][]repository.DigestModel) error {
+	var sb strings.Builder
+	for k, digest := range m {
+		var tracks strings.Builder
+		for i := range digest {
+			tracks.WriteString(fmt.Sprintf("<b>Трек: %s</b>\n<b>Описание: %s </b> \n", digest[i].Title, digest[i].Description))
+		}
+		sb.WriteString(fmt.Sprintf("<b>"+
+			"<b>Жанр: %s</b>\n"+
+			"<b>%s</b>"+
+			"</b>\n", k, tracks.String()))
+	}
 
-	msg := tgbotapi.NewMessage(n.channelID, fmt.Sprintf(
-		msgFormat,
-		digest.Title,
-		digest.Genre,
-		digest.PublishedAt,
-		digest.Description,
-	))
-
+	msg := tgbotapi.NewMessage(n.channelID, sb.String())
+	msg.ParseMode = "HTML"
 	_, err := n.bot.Send(msg)
 
 	if err != nil {

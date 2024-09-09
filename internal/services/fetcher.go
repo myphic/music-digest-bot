@@ -56,7 +56,7 @@ func (f *FetchImpl) Fetch(ctx context.Context) error {
 
 	for _, source := range sources {
 		wg.Add(1)
-		var albums []Albums /* todo save albums to storage */
+		var albums []Albums
 		go func(source repository.SourceModel, albums []Albums) {
 			albums = f.fetchers.FetchFromService(ctx)
 			err = f.processItems(ctx, source, albums)

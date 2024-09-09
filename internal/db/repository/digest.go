@@ -10,6 +10,7 @@ type DigestRepository interface {
 	CreateAndGetID(ctx context.Context, digest DigestModel) (int, error)
 	AllNotPosted(ctx context.Context) ([]DigestModel, error)
 	MarkAsPosted(ctx context.Context, article DigestModel) error
+	GetAllByDigestId(ctx context.Context) (map[int][]DigestModel, error)
 }
 
 type DigestRepositoryImpl struct {
@@ -18,6 +19,28 @@ type DigestRepositoryImpl struct {
 
 func NewDigestRepository(conn *pgx.Conn) *DigestRepositoryImpl {
 	return &DigestRepositoryImpl{conn: conn}
+}
+
+func (r *DigestRepositoryImpl) GetAllByDigestId(ctx context.Context) (map[int][]DigestModel, error) {
+	digests := map[int][]DigestModel{}
+
+	rows, err := r.conn.Query(ctx, "SELECT id, title, description, genre FROM digest")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var digest DigestModel
+		err = rows.Scan(&digest.ID, &digest.Title, &digest.Description, &digest.Genre)
+		if err != nil {
+			return nil, err
+		}
+		digests[digest.DigestID] = append(digests[digest.DigestID], digest)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return digests, nil
 }
 
 func (r *DigestRepositoryImpl) GetByID(ctx context.Context, ID int) (DigestModel, error) {
