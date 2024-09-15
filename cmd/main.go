@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"music-digest-bot/internal/config"
 	"music-digest-bot/internal/db/repository"
@@ -32,15 +32,15 @@ func main() {
 	defer cancel()
 	yaMusic := yandexmusic.NewYandexFetcher(cfg.YandexMusicToken, logger)
 
-	conn, err := pgx.Connect(ctx, cfg.DatabaseUrl)
+	pool, err := pgxpool.New(ctx, cfg.DatabaseUrl)
 	if err != nil {
 		logger.Error("database connection error: ", err)
 		return
 	}
 
-	defer conn.Close(ctx)
-	sourcesRepo := repository.NewSourcesRepository(conn)
-	digestRepo := repository.NewDigestRepository(conn)
+	defer pool.Close()
+	sourcesRepo := repository.NewSourcesRepository(pool)
+	digestRepo := repository.NewDigestRepository(pool)
 	fetcher := services.New(sourcesRepo, digestRepo, yaMusic)
 	err = fetcher.Fetch(ctx)
 	if err != nil {

@@ -2,25 +2,26 @@ package repository
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SourcesRepository interface {
 	GetByName(ctx context.Context, name string) (SourceModel, error)
 	Sources(ctx context.Context) ([]SourceModel, error)
+	Create(ctx context.Context, source SourceModel) (SourceModel, error)
 }
 
 type SourcesRepositoryImpl struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
 }
 
-func NewSourcesRepository(conn *pgx.Conn) *SourcesRepositoryImpl {
-	return &SourcesRepositoryImpl{conn: conn}
+func NewSourcesRepository(pool *pgxpool.Pool) *SourcesRepositoryImpl {
+	return &SourcesRepositoryImpl{pool: pool}
 }
 
 func (s *SourcesRepositoryImpl) GetByName(ctx context.Context, name string) (SourceModel, error) {
 	var Source SourceModel
-	err := s.conn.QueryRow(ctx, "SELECT * FROM sources WHERE name = $1", name).Scan(Source)
+	err := s.pool.QueryRow(ctx, "SELECT * FROM sources WHERE name = $1", name).Scan(Source)
 
 	if err != nil {
 		return SourceModel{}, err
@@ -30,7 +31,7 @@ func (s *SourcesRepositoryImpl) GetByName(ctx context.Context, name string) (Sou
 }
 
 func (s *SourcesRepositoryImpl) Sources(ctx context.Context) ([]SourceModel, error) {
-	rows, err := s.conn.Query(ctx, "SELECT id, name FROM sources")
+	rows, err := s.pool.Query(ctx, "SELECT id, name FROM sources")
 
 	if err != nil {
 		return nil, err
@@ -49,4 +50,12 @@ func (s *SourcesRepositoryImpl) Sources(ctx context.Context) ([]SourceModel, err
 		return nil, err
 	}
 	return Sources, nil
+}
+
+func (s *SourcesRepositoryImpl) Create(ctx context.Context, source SourceModel) (SourceModel, error) {
+	err := s.pool.QueryRow(ctx, "INSERT INTO sources (name) VALUES ($1) RETURNING id", source.Name).Scan(&source.ID)
+	if err != nil {
+		return SourceModel{}, err
+	}
+	return source, nil
 }
