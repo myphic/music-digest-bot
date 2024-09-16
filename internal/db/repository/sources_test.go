@@ -6,30 +6,57 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	"log"
 	"music-digest-bot/internal/testhelpers"
 	"testing"
 )
 
 var yaMusic = "yandexmusic"
 
-func TestSourcesRepository(t *testing.T) {
-	ctx := context.Background()
+type SourcesRepoSuite struct {
+	suite.Suite
+	pgContainer *testhelpers.PostgresContainer
+	repository  *SourcesRepositoryImpl
+	ctx         context.Context
+}
 
-	pgContainer, err := testhelpers.CreatePostgresContainer(ctx)
-	require.NoError(t, err)
+func (suite *SourcesRepoSuite) SetupSuite() {
+	suite.ctx = context.Background()
+	pgContainer, err := testhelpers.CreatePostgresContainer(suite.ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	suite.pgContainer = pgContainer
 
-	dbUrl := pgContainer.ConnectionString
-
-	pool, err := pgxpool.New(ctx, dbUrl)
-	require.NoError(t, err)
+	pool, err := pgxpool.New(suite.ctx, pgContainer.ConnectionString)
+	if err != nil {
+		log.Fatal(err)
+	}
 	db := stdlib.OpenDBFromPool(pool)
 
 	err = goose.Up(db, "./../migrations")
-	require.NoError(t, err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	sourcesRepo := NewSourcesRepository(pool)
+	suite.repository = sourcesRepo
+}
 
-	source, err := sourcesRepo.Create(ctx, SourceModel{Name: yaMusic})
+func (suite *SourcesRepoSuite) TearDownSuite() {
+	if err := suite.pgContainer.Terminate(suite.ctx); err != nil {
+		log.Fatalf("error terminating postgres container: %s", err)
+	}
+}
+
+func (suite *SourcesRepoSuite) TestCreateSources() {
+	t := suite.T()
+	source, err := suite.repository.Create(suite.ctx, SourceModel{Name: yaMusic})
 	require.NoError(t, err)
 	require.NotNil(t, source)
 	require.Equal(t, yaMusic, source.Name)
+}
+
+func TestSourcesRepoTestSuite(t *testing.T) {
+	suite.Run(t, new(SourcesRepoSuite))
 }
