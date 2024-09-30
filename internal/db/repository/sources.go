@@ -21,7 +21,7 @@ func NewSourcesRepository(pool *pgxpool.Pool) *SourcesRepositoryImpl {
 
 func (s *SourcesRepositoryImpl) GetByName(ctx context.Context, name string) (SourceModel, error) {
 	var Source SourceModel
-	err := s.pool.QueryRow(ctx, "SELECT * FROM sources WHERE name = $1", name).Scan(Source)
+	err := s.pool.QueryRow(ctx, "SELECT id, name, meta, created_at, updated_at FROM sources WHERE name = $1", name).Scan(&Source.ID, &Source.Name, &Source.Meta, &Source.CreatedAt, &Source.UpdatedAt)
 
 	if err != nil {
 		return SourceModel{}, err

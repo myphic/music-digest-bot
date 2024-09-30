@@ -58,12 +58,12 @@ func (f *FetchImpl) Fetch(ctx context.Context) error {
 		wg.Add(1)
 
 		go func(source repository.SourceModel) {
+			defer wg.Done()
 			albums := f.fetchers.FetchFromService(ctx)
 			err = f.processItems(ctx, source, albums)
 			if err != nil {
 				return
 			}
-			defer wg.Done()
 		}(source)
 	}
 	wg.Wait()

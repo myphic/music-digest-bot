@@ -49,9 +49,13 @@ func (suite *SourcesRepoSuite) TearDownSuite() {
 	}
 }
 
-func (suite *SourcesRepoSuite) TestCreateSources() {
+func (suite *SourcesRepoSuite) TestSourcesRepository() {
 	t := suite.T()
 	source, err := suite.repository.Create(suite.ctx, SourceModel{Name: yaMusic})
+	require.NoError(t, err)
+	require.NotNil(t, source)
+	require.Equal(t, yaMusic, source.Name)
+	source, err = suite.repository.GetByName(suite.ctx, yaMusic)
 	require.NoError(t, err)
 	require.NotNil(t, source)
 	require.Equal(t, yaMusic, source.Name)
