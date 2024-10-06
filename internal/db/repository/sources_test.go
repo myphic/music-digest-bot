@@ -59,6 +59,10 @@ func (suite *SourcesRepoSuite) TestSourcesRepository() {
 	require.NoError(t, err)
 	require.NotNil(t, source)
 	require.Equal(t, yaMusic, source.Name)
+	sources, err := suite.repository.Sources(suite.ctx)
+	require.NoError(t, err)
+	require.NotNil(t, source)
+	require.Equal(t, yaMusic, sources[0].Name)
 }
 
 func TestSourcesRepoTestSuite(t *testing.T) {
